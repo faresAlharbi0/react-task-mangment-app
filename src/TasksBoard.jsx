@@ -2,55 +2,56 @@ import Bucket from "./Bucket";
 import EmptyBucket from "./EmptyBucket";
 import { useRef, useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
+import {
+  insertNewBucket,
+  getBuckets,
+  getTasks,
+  insertNewTask,
+} from "./database";
 
 export default function TasksBoard() {
   const [buckets, setBuckets] = useState([]);
-  const [active_bucket, setActiveBucket] = useState(null);
-  const [task_title, setTaskTitle] = useState(null);
-  const [task_description, setTaskDescription] = useState(null);
+  const [active_bucket, setActiveBucket] = useState("");
+  const [task_title, setTaskTitle] = useState("");
+  const [task_description, setTaskDescription] = useState("");
   const dialogRef = useRef(null);
-  const addBucket = (title) => {
-    const newBucket = {
-      id: uuidv4(),
-      title,
-      tasks: [],
-    };
-    setBuckets((prevBuckets) => [...prevBuckets, newBucket]);
+
+  const addBucket = async (title) => {
+    if (!title?.trim()) return; // stop empty/undefined
+
+    await insertNewBucket(title.trim());
+
+    await reloadBuckets();
   };
 
   useEffect(() => {
-    const savedBuckets = localStorage.getItem("buckets");
-    if (savedBuckets) {
-      setBuckets(JSON.parse(savedBuckets));
-    }
+    const loadBuckets = async () => {
+      await reloadBuckets();
+    };
+
+    loadBuckets();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("buckets", JSON.stringify(buckets));
-  }, [buckets]);
-
-  const addTask = (e) => {
+  const addTask = async (e) => {
     e.preventDefault();
     if (task_title && task_description) {
-      const newTask = {
-        id: uuidv4(),
-        title: task_title,
-        description: task_description,
-      };
-      setBuckets((prevBuckets) =>
-        prevBuckets.map((bucket) =>
-          bucket.id === active_bucket
-            ? {
-                ...bucket,
-                tasks: [...bucket.tasks, newTask],
-              }
-            : bucket,
-        ),
-      );
+      insertNewTask(active_bucket, task_title, task_description);
+      await reloadBuckets();
     }
     dialogRef.current.close();
     setTaskTitle("");
     setTaskDescription("");
+  };
+
+  const reloadBuckets = async () => {
+    const bucketsData = await getBuckets();
+    const formatted = await Promise.all(
+      bucketsData.map(async (bucket) => ({
+        ...bucket,
+        tasks: await getTasks(bucket.id),
+      })),
+    );
+    setBuckets(formatted);
   };
 
   const handleOpenDialog = (bucketId) => {

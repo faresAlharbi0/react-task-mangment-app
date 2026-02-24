@@ -1,5 +1,5 @@
 import React from "react";
-import { StrictMode, useState } from "react";
+import { StrictMode, useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import Header from "./Header";
 import TasksBoard from "./TasksBoard";
@@ -7,8 +7,8 @@ import TasksBoard from "./TasksBoard";
 const App = () => {
   return (
     <>
-    <Header></Header>
-    <TasksBoard></TasksBoard>
+      <Header></Header>
+      <TasksBoard></TasksBoard>
     </>
   );
 };
