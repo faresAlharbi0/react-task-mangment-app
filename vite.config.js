@@ -10,6 +10,7 @@ export default defineConfig({
     target: "esnext",
 =======
   base: "/faresAlharbi0/react-task-mangment-app", // <--- add this
+  base: "/react-task-mangment-app/", // <--- add this
   plugins: [react()],
   build: {
     target: "esnext", // ensures WASM support
